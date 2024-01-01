@@ -38,7 +38,16 @@ const notesCollection = client.db("SkillStreet").collection("notes");
 
 app.post("/createNote", async (req, res) => {
   const note = req.body;
-  console.log(note);
+  //   console.log(note);
+
+  if (
+    !note.title.length ||
+    note.title.length > 25 ||
+    !note.note ||
+    note.note.length < 25
+  ) {
+    return res.status(400).send("Invalid note data");
+  }
 
   const result = await notesCollection.insertOne(note);
   res.send(result);
@@ -66,25 +75,36 @@ app.put("/update/:id", async (req, res) => {
   const body = req.body;
   //   console.log(body);
 
+  if (
+    !body.title.length ||
+    body.title.length > 25 ||
+    !body.note ||
+    body.note.length < 25
+  ) {
+    return res.status(400).send("Invalid note data");
+  }
+
   const find = { _id: new ObjectId(id) };
   const option = { upsert: true };
 
   const note = {
     $set: {
+      title: body.title,
       note: body.note,
+      date: body.date,
     },
   };
 
-  app.delete("/delete/:id", async (req, res) => {
-    const id = req.params.id;
-        console.log(id);
-
-//     const query = { _id: new ObjectId(id) };
-//     const result = await notesCollection.deleteOne(query);
-//     res.send(result);
-  });
-
   const result = await notesCollection.updateOne(find, note, option);
+  res.send(result);
+});
+
+app.delete("/trash/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log(id);
+
+  const query = { _id: new ObjectId(id) };
+  const result = await notesCollection.deleteOne(query);
   res.send(result);
 });
 
